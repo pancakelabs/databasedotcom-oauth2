@@ -64,7 +64,7 @@ module Databasedotcom
           @scope_override       = options[:scope_override]     || false
           @api_version          = options[:api_version]        || "25.0"
           @debugging            = options[:debugging]          || false
-          @post_callback_uri    = options[:post_callback_uri]       || '/'
+          @post_callback_uri    = options[:post_callback_uri]  || '/'
         end
 
         

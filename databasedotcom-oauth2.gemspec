@@ -2,8 +2,8 @@
 require File.expand_path('../lib/databasedotcom-oauth2/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["Richard Vanhook"]
-  gem.email         = ["rvanhook@salesforce.com"]
+  gem.authors       = ["Richard Vanhook", 'Ben Menesini']
+  gem.email         = ["rvanhook@salesforce.com", 'ben@shortstacklab.com']
   gem.description   = %q{OAuth2 Rack Middleware for database.com/salesforce.com.}
   gem.summary       = %q{OAuth2 Rack Middleware for database.com/salesforce.com.}
   gem.homepage      = "https://github.com/richardvanhook/databasedotcom-oauth2"
