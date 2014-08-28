@@ -64,6 +64,7 @@ module Databasedotcom
           @scope_override       = options[:scope_override]     || false
           @api_version          = options[:api_version]        || "25.0"
           @debugging            = options[:debugging]          || false
+          @post_callback_uri    = options[:post_callback_uri]       || '/'
         end
 
         
@@ -120,7 +121,7 @@ module Databasedotcom
         mydomain = self.class.sanitize_mydomain(request.params["mydomain"])
 
         #add endpoint to relay state so callback knows which keys to use
-        request.params["state"] ||= "/"
+        request.params["state"] ||= @post_callback_uri
         state = Addressable::URI.parse(request.params["state"])
         state.query_values={} unless state.query_values
         state.query_values= state.query_values.merge({:endpoint => endpoint.to_s})
@@ -179,7 +180,7 @@ module Databasedotcom
         code = request.params["code"]
         #grab and remove endpoint from relay state
         #upon successful retrieval of token, state is url where user will be redirected to
-        request.params["state"] ||= "/"
+        request.params["state"] ||= @post_callback_uri
         state = Addressable::URI.parse(request.params["state"])
         state.query_values= {} if state.query_values.nil?
         state_params = state.query_values.dup
