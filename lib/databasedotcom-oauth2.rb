@@ -82,8 +82,11 @@ module Databasedotcom
       def call!(env)
         @env = env
         begin
-          return authorize_call if on_authorize_path?
-          return callback_call  if on_callback_path?
+          if on_authorize_path?
+            session['databasedotcom_callback_params'] = request.params
+            return authorize_call
+          end
+          return callback_call if on_callback_path?
         rescue Exception => e
           self.class._log_exception(e)
           if @on_failure.nil?
@@ -121,7 +124,7 @@ module Databasedotcom
         mydomain = self.class.sanitize_mydomain(request.params["mydomain"])
 
         #add endpoint to relay state so callback knows which keys to use
-        request.params["state"] ||= @post_callback_uri
+        request.params["state"] ||= '/'
         state = Addressable::URI.parse(request.params["state"])
         state.query_values={} unless state.query_values
         state.query_values= state.query_values.merge({:endpoint => endpoint.to_s})
@@ -180,7 +183,7 @@ module Databasedotcom
         code = request.params["code"]
         #grab and remove endpoint from relay state
         #upon successful retrieval of token, state is url where user will be redirected to
-        request.params["state"] ||= @post_callback_uri
+        request.params["state"] ||= '/'
         state = Addressable::URI.parse(request.params["state"])
         state.query_values= {} if state.query_values.nil?
         state_params = state.query_values.dup
@@ -200,6 +203,8 @@ module Databasedotcom
           (5) retrieving token
         message
 
+        callback_params = session['databasedotcom_callback_params'].to_query
+
         #do callout to retrieve token
         access_token = client(endpoint.to_s, keys[:key], keys[:secret]).auth_code.get_token(code, 
           :redirect_uri => "#{full_host}#{@path_prefix}/callback")
@@ -212,7 +217,8 @@ module Databasedotcom
           (5) client from token: #{client.inspect}
           (6) session_client \n#{session_client}
         message
-        redirect state.to_str
+        session.data.delete('databasedotcom_callback_params')
+        redirect "#{ @post_callback_uri }?#{ callback_params }" || state.to_str
       end
 
       def save_client_to_session(client)
