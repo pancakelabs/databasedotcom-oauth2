@@ -28,7 +28,33 @@ module Databasedotcom
     
     module Helpers
       def client
-        env[CLIENT_KEY]
+        # Rails >= 3
+        if defined? env
+          env[CLIENT_KEY]
+
+        # Rails 2
+        elsif defined?(@request_env) && !@request_env.nil? && !@request_env[CLIENT_KEY].nil?
+          @request_env[CLIENT_KEY]
+
+        # Auth with token and instance url
+        elsif !@credentials[:oauth_token].nil? &&
+              !@credentials[:instance_url].nil? &&
+              !@credentials[:client_id].nil? &&
+              !@credentials[:client_secret].nil?
+          consumer = Databasedotcom::Client.new(
+            :client_id => @credentials[:client_id],
+            :client_secret => @credentials[:client_secret],
+            :version => '25.0'
+          )
+          consumer.authenticate(
+            :token => @credentials[:oauth_token],
+            :instance_url => @credentials[:instance_url]
+          )
+          consumer
+        else
+          fail ArgumentError, 'Databasedotcom::OAuth2::Helpers.client could ' \
+                              'not instantiate a client.'
+        end
       end
 
       def unauthenticated?
